@@ -9,13 +9,16 @@ async function connectDB() {
     return mongoose.connection;
   }
 
-  if (!process.env.MONGO_URL) {
-    throw new Error("MONGO_URL is not configured");
+  // Support both the name used by this project and MongoDB's common Vercel
+  // integration variable name. Vercel does not load backend/.env on deploy.
+  const mongoURL = process.env.MONGO_URL || process.env.MONGODB_URI;
+  if (!mongoURL) {
+    throw new Error("Set MONGO_URL or MONGODB_URI in the backend deployment environment");
   }
 
   if (!connectionPromise) {
     connectionPromise = mongoose
-      .connect(process.env.MONGO_URL, {
+      .connect(mongoURL, {
         serverSelectionTimeoutMS: 10000,
       })
       .then(() => mongoose.connection)
